@@ -1,0 +1,72 @@
+CREATE TABLE IF NOT EXISTS images (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  type VARCHAR(10) NOT NULL,
+  url TEXT NOT NULL
+);
+
+ALTER TABLE images
+ADD COLUMN title VARCHAR(255) NOT NULL;
+
+
+CREATE TABLE volunteers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  role VARCHAR(255) NOT NULL,
+  contact VARCHAR(20)
+);
+
+
+CREATE TABLE donations (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  donorName VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  amount DECIMAL(10, 2) NOT NULL,
+  message TEXT
+);
+
+
+CREATE TABLE vaccinations (
+    id SERIAL PRIMARY KEY,
+    petName VARCHAR(100) NOT NULL,
+    vaccineName VARCHAR(100) NOT NULL,
+    vaccinationDate DATE NOT NULL
+);
+
+
+CREATE TABLE veterinary_records (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    contact VARCHAR(15) NOT NULL,
+    specialization VARCHAR(255) NOT NULL
+);
+
+
+CREATE TABLE rescues (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  location VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  contact VARCHAR(50) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE pets (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100),
+  image VARCHAR(255),
+  breed VARCHAR(100),
+  age VARCHAR(10),
+  description TEXT
+);
+
+
+CREATE TABLE adoptions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  userName VARCHAR(100),
+  email VARCHAR(100),
+  phone VARCHAR(15),
+  petId INT,
+  petName VARCHAR(100),
+  petBreed VARCHAR(100)
+);
