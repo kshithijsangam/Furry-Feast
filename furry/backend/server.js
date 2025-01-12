@@ -126,7 +126,7 @@ const PORT = process.env.PORT || 5000;
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
 
 
@@ -545,30 +545,66 @@ app.put("/api/adoption-requests/:id/reject", (req, res) => {
 
 
 
-//userside view petrequest
-app.get("/api/adoption-requests", async (req, res) => {
-  const { email } = req.query;
+//user view pet request
+    // Fetch data for the specific email
+    app.get("/api/user", async (req, res) =>{
+      const { email } = req.query;
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          error: "Email is required"
+        });
+      }
+    
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid email format"
+        });
+      }
+    
+      try {
+        // Fetch data for the specific email
+        const [results] = await db.execute(
+          "SELECT id, userName, email, phone, petId, petName, petBreed, status FROM adoptions WHERE email = ?",
+          [email]
+        );
+    
+        // Check if records are found
+        if (results.length === 0) {
+          return res.status(404).json({
+            success: false,
+            message: "No records found for the provided email"
+          });
+        }
+    
+        // Return the matched user's data
+        res.json({
+          success: true,
+          data: results
+        });
+      } catch (error) {
+        console.error("Database query error:", error);
+        res.status(500).json({
+          success: false,
+          error: "Server error"
+        });
+      }
+    });
 
-  if (!email) {
-    return res.status(400).json({ error: "Email is required" });
-  }
-
-  try {
-    const results = await db.query(
-      "SELECT id, userName, email, phone, petId, petName, petBreed, status FROM adoptions WHERE email = ?",
-      [email]
-    );
-
-    if (results.length === 0) {
-      return res.status(404).json({ message: "No records found" });
-    }
-
-    res.json(results);
-  } catch (error) {
-    console.error("Database query error:", error);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-
-
+    //settings admin page user data
+    // Route to fetch all users
+    app.get('/api/users', (req, res) => {
+      const query = 'SELECT * FROM users'; // Fetch all user data from the users table
+    
+      db.query(query, (err, results) => {
+          if (err) {
+              console.error('Error fetching user data:', err);
+              res.status(500).json({ error: 'Failed to fetch user data' });
+              return;
+          }
+          res.json(results); // Return all user data
+      });
+    });
