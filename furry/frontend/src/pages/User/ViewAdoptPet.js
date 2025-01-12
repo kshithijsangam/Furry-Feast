@@ -9,13 +9,11 @@ const ViewAdoptPet = () => {
   const [pets, setPets] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedPet, setSelectedPet] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Generate a random userId for simulation (in real apps, this would come from the user's session or auth system)
   const userId = localStorage.getItem('userId') || Date.now();
   localStorage.setItem('userId', userId);
 
-  // Define validation schema
   const schema = Yup.object().shape({
     userName: Yup.string().required('Name is required'),
     email: Yup.string().email('Invalid email format').required('Email is required'),
@@ -24,7 +22,6 @@ const ViewAdoptPet = () => {
       .required('Phone number is required'),
   });
 
-  // Use React Hook Form with validation schema
   const {
     register,
     handleSubmit,
@@ -35,18 +32,14 @@ const ViewAdoptPet = () => {
     resolver: yupResolver(schema),
   });
 
-  // Fetch pets on component mount
   useEffect(() => {
     const fetchPets = async () => {
       try {
         const response = await axios.get('http://localhost:5000/api/pets');
         const fetchedPets = response.data;
 
-        // Retrieve adoption state from localStorage for the current user
         const adoptedPets = JSON.parse(localStorage.getItem(`adoptedPets_${userId}`)) || [];
-
-        // Update each pet with its adoption state for the current user
-        const updatedPets = fetchedPets.map(pet => ({
+        const updatedPets = fetchedPets.map((pet) => ({
           ...pet,
           adopted: adoptedPets.includes(pet.id),
         }));
@@ -55,7 +48,7 @@ const ViewAdoptPet = () => {
       } catch (error) {
         console.error('Error fetching pets:', error);
       } finally {
-        setIsLoading(false); // Set loading to false once data is fetched
+        setIsLoading(false);
       }
     };
 
@@ -77,7 +70,7 @@ const ViewAdoptPet = () => {
 
   const handleClose = () => {
     setOpen(false);
-    reset(); // Reset the form on close
+    reset();
   };
 
   const handleFormSubmit = async (data) => {
@@ -89,7 +82,6 @@ const ViewAdoptPet = () => {
         petBreed: selectedPet.breed,
       });
 
-      // Persist adopted pet's ID in localStorage for the current user
       const adoptedPets = JSON.parse(localStorage.getItem(`adoptedPets_${userId}`)) || [];
       if (!adoptedPets.includes(selectedPet.id)) {
         adoptedPets.push(selectedPet.id);
@@ -97,7 +89,11 @@ const ViewAdoptPet = () => {
       }
 
       alert('Adoption request submitted successfully!');
-      handleAdoptSuccess(selectedPet.id); // Update adoption status
+      setPets((prevPets) =>
+        prevPets.map((pet) =>
+          pet.id === selectedPet.id ? { ...pet, adopted: true } : pet
+        )
+      );
       handleClose();
     } catch (error) {
       console.error('Error submitting adoption request:', error);
@@ -105,24 +101,15 @@ const ViewAdoptPet = () => {
     }
   };
 
-  const handleAdoptSuccess = (petId) => {
-    // Update pet's adoption status in the state
-    setPets(pets.map(pet =>
-      pet.id === petId ? { ...pet, adopted: true } : pet
-    ));
-  };
-
   const handleBackClick = () => {
-    // Navigate back (you can adjust this to your route)
     window.history.back();
   };
 
   return (
     <Box sx={{ padding: 3, backgroundColor: '#f0f4f8' }}>
-      {/* Back Button */}
-      <Button 
-        variant="outlined" 
-        color="primary" 
+      <Button
+        variant="outlined"
+        color="primary"
         onClick={handleBackClick}
         sx={{
           marginBottom: 3,
@@ -132,78 +119,56 @@ const ViewAdoptPet = () => {
           '&:hover': {
             backgroundColor: '#1976d2',
             color: '#fff',
-          }
+          },
         }}
       >
         Back
       </Button>
 
-      <Typography 
-        variant="h4" 
-        sx={{ 
-          marginBottom: 3, 
-          textAlign: 'center', 
-          color: '#1976d2', 
+      <Typography
+        variant="h4"
+        sx={{
+          marginBottom: 3,
+          textAlign: 'center',
+          color: '#1976d2',
           fontWeight: 'bold',
         }}
       >
         Pets Available for Adoption
       </Typography>
 
-      {/* Loading State */}
       {isLoading ? (
-        <Typography>Loading pets...</Typography> // Show loading message
+        <Typography>Loading pets...</Typography>
       ) : (
         <Grid container spacing={3}>
           {pets.map((pet) => (
             <Grid item xs={12} sm={6} md={4} key={pet.id}>
-              <Card 
-                sx={{ 
-                  backgroundColor: 'white', 
+              <Card
+                sx={{
                   '&:hover': {
                     transform: 'scale(1.05)',
                     boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
                     transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                  }
+                  },
                 }}
               >
                 <CardMedia
                   component="img"
-                  height="auto" // Set to auto to display in real size
-                  image={pet.image}
+                  image={pet.image || 'https://via.placeholder.com/150'}
                   alt={pet.name}
-                  onError={(e) => (e.target.src = 'https://via.placeholder.com/150')}
-                  sx={{
-                    borderTopLeftRadius: '8px',
-                    borderTopRightRadius: '8px',
-                  }}
                 />
                 <CardContent>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{pet.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Breed: {pet.breed}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Age: {pet.age} years
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Description: {pet.description}
-                  </Typography>
-                  
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => handleAdoptClick(pet.id)}
-                      sx={{
-                        marginTop: 2,
-                        '&:hover': {
-                          backgroundColor: '#115293',
-                        },
-                      }}
-                    >
-                      Adopt
-                    </Button>
-                  
+                  <Typography variant="h6">{pet.name}</Typography>
+                  <Typography variant="body2">Breed: {pet.breed}</Typography>
+                  <Typography variant="body2">Age: {pet.age} years</Typography>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => handleAdoptClick(pet.id)}
+                    disabled={pet.adopted}
+                  >
+                    {pet.adopted ? 'Adopted' : 'Adopt'}
+                  </Button>
                 </CardContent>
               </Card>
             </Grid>
@@ -211,7 +176,6 @@ const ViewAdoptPet = () => {
         </Grid>
       )}
 
-      {/* Modal Form */}
       <Modal open={open} onClose={handleClose}>
         <Box
           sx={{
@@ -221,13 +185,11 @@ const ViewAdoptPet = () => {
             transform: 'translate(-50%, -50%)',
             width: 400,
             bgcolor: 'background.paper',
-            border: '2px solid #1976d2',
-            boxShadow: 24,
             padding: 4,
             borderRadius: '8px',
           }}
         >
-          <Typography variant="h6" sx={{ textAlign: 'center', marginBottom: 2 }}>
+          <Typography variant="h6" textAlign="center">
             Adopt {selectedPet?.name}
           </Typography>
           <form onSubmit={handleSubmit(handleFormSubmit)}>
@@ -258,11 +220,8 @@ const ViewAdoptPet = () => {
               helperText={errors.phone?.message}
               sx={{ marginBottom: 2 }}
             />
-            <input type="hidden" {...register('petName')} />
-            <input type="hidden" {...register('petBreed')} />
-            <input type="hidden" {...register('petId')} />
-            <Button variant="contained" color="primary" type="submit" fullWidth>
-              Submit Adoption Request
+            <Button variant="contained" type="submit" fullWidth>
+              Submit Request
             </Button>
           </form>
         </Box>
