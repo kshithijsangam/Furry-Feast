@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AppBar,
   Toolbar,
@@ -10,53 +10,66 @@ import {
   CardContent,
   Divider,
   TextField,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const PetRequest = () => {
-  const [requests, setRequests] = useState([]);
-  const [email, setEmail] = useState(""); // To store user email
-  const [openEmailDialog, setOpenEmailDialog] = useState(true); // Email dialog is open initially
-  const [emailError, setEmailError] = useState(""); // Error message for invalid email
+  const [requests, setRequests] = useState([]); // To store all pet adoption requests
+  const [filteredRequests, setFilteredRequests] = useState([]); // To store filtered requests based on search
+  const [searchQuery, setSearchQuery] = useState(""); // To store search input
+  const [blurred, setBlurred] = useState(true); // For blur effect
   const navigate = useNavigate();
 
-  const fetchRequests = async (email) => {
-    try {
-      const response = await axios.get("http://localhost:5000/api/adoption-requests", {
-        params: { email },
-      });
-  
-      if (response.data.length === 0) {
-        alert("No records found for the provided email.");
-        setRequests([]); // Clear requests if no data is found
-      } else {
-        setRequests(response.data); // Set the data returned by the backend
-      }
-    } catch (error) {
-      console.error("Error fetching requests:", error);
-      alert("An error occurred while fetching the requests.");
-    }
-  };
-  
+  // Fetch all pet adoption requests on component mount
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/adoption-requests");
 
-  const handleEmailSubmit = () => {
-    if (email.trim() === "") {
-      setEmailError("Please enter a valid email");
-      return;
-    }
-    fetchRequests(email.trim()); // Fetch data for the entered email
-    setOpenEmailDialog(false);
-    setEmailError(""); // Clear any previous errors
+        if (response.data.length === 0) {
+          alert("No records found.");
+          setRequests([]); // Clear requests if no data is found
+          setFilteredRequests([]); // Clear filtered requests as well
+        } else {
+          setRequests(response.data); // Set the data returned by the backend
+          setFilteredRequests(response.data); // Set the filtered requests initially to all data
+        }
+      } catch (error) {
+        console.error("Error fetching requests:", error);
+        alert("An error occurred while fetching the requests.");
+      }
+    };
+
+    fetchRequests();
+  }, []);
+
+  // Handle search input and filter requests by email
+  const handleSearch = (event) => {
+    const query = event.target.value.toLowerCase();
+    setSearchQuery(query);
+
+    // Filter requests based on the query (searching pet name, breed, or user email)
+    const filtered = requests.filter(
+      (request) =>
+        request.petName.toLowerCase().includes(query) ||
+        request.petBreed.toLowerCase().includes(query) ||
+        request.email.toLowerCase().includes(query) // Changed to email search
+    );
+    setFilteredRequests(filtered);
+
+    // Check if the search query matches the full user email exactly
+    const isEmailMatched = filtered.some((request) =>
+      request.email.toLowerCase() === query
+    );
+
+    // Remove blur effect only if the email matches
+    setBlurred(!isEmailMatched);
   };
 
   const handleLogout = () => {
     setRequests([]); // Clear requests on logout
-    setEmail(""); // Clear email on logout
+    setFilteredRequests([]); // Clear filtered requests on logout
     navigate("/login");
   };
 
@@ -113,33 +126,6 @@ const PetRequest = () => {
         </Toolbar>
       </AppBar>
 
-      {/* Email Dialog */}
-      <Dialog open={openEmailDialog}>
-        <DialogTitle>Enter Your Email</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Email"
-            type="email"
-            fullWidth
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={!!emailError}
-            helperText={emailError}
-            sx={{ boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)", borderRadius: "8px" }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenEmailDialog(false)} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleEmailSubmit} color="primary">
-            Submit
-          </Button>
-        </DialogActions>
-      </Dialog>
-
       {/* Page Content */}
       <Box sx={{ maxWidth: "1200px", margin: "0 auto", textAlign: "center" }}>
         <Typography
@@ -151,9 +137,39 @@ const PetRequest = () => {
           Review and Manage Pet Adoption Requests
         </Typography>
 
-        <Grid container spacing={3}>
-          {requests.length > 0 ? (
-            requests.map((request) => (
+        {/* Search Bar */}
+        <TextField
+          label="Search Pet Requests by Email"
+          variant="outlined"
+          fullWidth
+          value={searchQuery}
+          onChange={handleSearch}
+          sx={{
+            marginBottom: "2rem",
+            backgroundColor: "#fff",
+            borderRadius: "8px",
+            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
+          }}
+        />
+
+        <Grid container spacing={3} sx={{ position: "relative" }}>
+          {/* Apply Blur Effect to Background */}
+          <Box
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backdropFilter: "blur(10px)",
+              zIndex: 0,
+              transition: "all 0.3s ease",
+              opacity: blurred ? 1 : 0,
+            }}
+          ></Box>
+
+          {filteredRequests.length > 0 ? (
+            filteredRequests.map((request) => (
               <Grid item xs={12} sm={6} md={4} key={request.id}>
                 <Card
                   sx={{
@@ -166,6 +182,7 @@ const PetRequest = () => {
                       boxShadow: "0px 18px 30px rgba(0, 0, 0, 0.15)",
                     },
                     overflow: "hidden",
+                    zIndex: 1, // Ensure card is above blurred layer
                   }}
                 >
                   <CardContent>
@@ -208,8 +225,11 @@ const PetRequest = () => {
               No adoption requests to display.
             </Typography>
           )}
+           
         </Grid>
+       
       </Box>
+      
     </Box>
   );
 };
