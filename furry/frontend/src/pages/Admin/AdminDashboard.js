@@ -33,7 +33,7 @@ const menuItems = [
   { text: "Manage Pet Request", icon: <PetsIcon /> },
   { text: "Manage Vaccination", icon: <PetsIcon /> },
   { text: "Manage Veterinary", icon: <PetsIcon /> },
-  { text: "Settings", icon: <SettingsIcon /> },
+  { text: "User Data", icon: <SettingsIcon /> },
 ];
 
 const drawerWidth = 280;
@@ -62,7 +62,7 @@ const AdminDashboard = () => {
         sx={{
           width: drawerWidth,
           flexShrink: 0,
-          [`& .MuiDrawer-paper`]: {
+          '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
             backgroundColor: '#2c3e50',
@@ -156,23 +156,20 @@ const AdminDashboard = () => {
             alignItems: 'center',
             justifyContent: 'center',
             marginTop: 5,
-          }} >
-
+          }}
+        >
           <img
-          src={`${process.env.PUBLIC_URL}/admin img.png`}
-          alt="Admin Illustration"
-
-        style={{
-          width: '300px', // Set a fixed width to reduce size
-          maxWidth: '100%', // Ensure it doesn't exceed the container's width
-          height: 'auto', // Maintain aspect ratio
-          borderRadius: '15px',
-          marginBottom: '20px',
-          boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
-          
-         }}/>
-
-          
+            src={`${process.env.PUBLIC_URL}/admin img.png`}
+            alt="Admin Illustration"
+            style={{
+              width: '300px',
+              maxWidth: '100%',
+              height: 'auto',
+              borderRadius: '15px',
+              marginBottom: '20px',
+              boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
+            }}
+          />
           <Typography variant="h4" sx={{ textAlign: 'center', color: '#34495e', marginTop: 3 }}>
             Welcome to Admin Dashboard
           </Typography>
