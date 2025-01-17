@@ -122,6 +122,32 @@ router.put("/update", (req, res) => {
   });
 });
 
+// fetch username by ID
+router.get("/user/:id", (req, res) => {
+  const userId = parseInt(req.params.id, 10); // Ensure ID is an integer
+  console.log('API called with user ID:', userId);
+
+  if (isNaN(userId)) {
+    return res.status(400).json({ message: 'Invalid user ID.' });
+  }
+
+  const query = "SELECT username FROM users WHERE id = ? LIMIT 1";
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("Error fetching username:", err);
+      return res.status(500).json({ message: "Internal server error." });
+    }
+
+    if (results.length === 0) {
+      console.log(`No user found with ID: ${userId}`);
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    console.log("Username found:", results[0].username);
+    res.status(200).json({ username: results[0].username }); // Return only the username
+  });
+});
+
 
 
 module.exports = router;
