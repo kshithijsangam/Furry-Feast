@@ -4,41 +4,39 @@ import { useNavigate } from "react-router-dom";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState("");
 
   // Fetch username from the backend
   const fetchUsername = async () => {
     try {
-        // Assuming `id` is stored in localStorage after login
-        const userId = localStorage.getItem('userId');
-        if (!userId) {
-            console.error('No userId found in localStorage.');
-            return;
-        }
+      const userSession = JSON.parse(localStorage.getItem("userSession")); // Retrieve user session details
+      if (!userSession || !userSession.id) {
+        throw new Error("Invalid session");
+      }
 
-        const response = await fetch(`http://localhost:5000/api/get-username/${userId}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+      const response = await fetch(`http://localhost:5000/auth/user/${userSession.id}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch username");
+      }
 
-        const data = await response.json();
-        setUsername(data.username);
+      const data = await response.json();
+      setUsername(data.username);
     } catch (error) {
-        console.error('Failed to fetch username:', error);
+      console.error("Error fetching username:", error);
+      setUsername("User"); // Default fallback
     }
-};
+  };
 
-useEffect(() => {
-    fetchUsername();
-}, []);
-
+  useEffect(() => {
+    fetchUsername(); // Fetch username on component mount
+  }, []);
 
   // Handle logout and navigate to the login page
   const handleLogout = () => {
+    localStorage.removeItem("userSession"); // Clear session on logout
     navigate("/login");
   };
 
-  // Menu items for navigation
   const menuItems = [
     { label: "View Work", path: "user/view-work" },
     { label: "Add Rescue", path: "user/add-rescue" },
@@ -125,7 +123,7 @@ useEffect(() => {
           gutterBottom
           sx={{ color: "#666", marginBottom: "2rem" }}
         >
-          Hello, {username ? username : "User"}!
+          Hello, {username}!
         </Typography>
         <Typography
           variant="body1"
